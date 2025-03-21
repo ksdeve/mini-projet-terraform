@@ -30,6 +30,7 @@ resource "azurerm_network_security_group" "nsg" {
   location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
 
+  # Règle pour autoriser HTTP (déjà présente)
   security_rule {
     name                       = "AllowHTTP"
     priority                   = 1001
@@ -41,7 +42,39 @@ resource "azurerm_network_security_group" "nsg" {
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
+
+  # Règle pour autoriser SSH
+  security_rule {
+    name                       = "AllowSSH"
+    priority                   = 1000
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  # Règle pour autoriser le port 8080
+  security_rule {
+    name                       = "Allow8080"
+    priority                   = 1002  # Priorité plus élevée que d'autres règles si nécessaire
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "8080"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
 }
+
+resource "azurerm_network_interface_security_group_association" "nic_nsg_association" {
+  network_interface_id      = azurerm_network_interface.nic.id
+  network_security_group_id = azurerm_network_security_group.nsg.id
+}
+
 
 resource "azurerm_network_interface" "nic" {
   name                = "FlaskNIC"
@@ -55,6 +88,7 @@ resource "azurerm_network_interface" "nic" {
     public_ip_address_id          = azurerm_public_ip.public_ip.id
   }
 }
+
 
 resource "azurerm_linux_virtual_machine" "vm" {
   name                = var.vm_name
@@ -77,62 +111,15 @@ resource "azurerm_linux_virtual_machine" "vm" {
     sku       = "18.04-LTS"
     version   = "latest"
   }
-
- custom_data = base64encode(<<-EOF
+custom_data = base64encode(<<-EOF
               #!/bin/bash
               sudo apt update -y
-              sudo apt install -y python3-pip python3-venv postgresql
 
-              # Créer un utilisateur pour exécuter l'application
-              sudo useradd -m flaskuser
-              sudo passwd -d flaskuser
-              sudo usermod -aG sudo flaskuser
-
-              # Passer à flaskuser
-              sudo -i -u flaskuser bash << 'EOSU'
-
-              # Créer un environnement virtuel
-              cd /home/flaskuser
-              python3 -m venv venv
-              source venv/bin/activate
-              pip install flask psycopg2
-
-              # Créer l'application Flask
-              echo "from flask import Flask
-              import psycopg2
-
-              app = Flask(__name__)
-
-              @app.route('/')
-              def hello():
-                  return 'Hello, Flask with PostgreSQL on Azure!'
-
-              if __name__ == '__main__':
-                  app.run(host='0.0.0.0', port=80)" > /home/flaskuser/app.py
-
-              deactivate
-              EOSU
-
-              # Créer un service systemd pour Flask
-              echo "[Unit]
-              Description=Flask Application
-              After=network.target
-
-              [Service]
-              User=flaskuser
-              WorkingDirectory=/home/flaskuser
-              ExecStart=/home/flaskuser/venv/bin/python3 /home/flaskuser/app.py
-              Restart=always
-
-              [Install]
-              WantedBy=multi-user.target" | sudo tee /etc/systemd/system/flaskapp.service
-
-              # Activer et démarrer le service
-              sudo systemctl daemon-reload
-              sudo systemctl enable flaskapp
-              sudo systemctl start flaskapp
-              EOF
+EOF
 )
+
+
+
 
 }
 
@@ -158,6 +145,15 @@ resource "azurerm_storage_container" "container" {
 resource "random_id" "server_id" {
   byte_length = 8  # Génère un identifiant unique de 8 octets
 }
+
+resource "azurerm_postgresql_firewall_rule" "allow_postgresql" {
+  name                = "AllowMyPostgresql"
+  server_name         = azurerm_postgresql_server.postgresql.name
+  resource_group_name = azurerm_resource_group.rg.name
+  start_ip_address    = "0.0.0.0"  # Autorise toutes les adresses (remplacer par des IP spécifiques pour plus de sécurité)
+  end_ip_address      = "255.255.255.255"  # Autorise toutes les adresses
+}
+
 
 
 resource "azurerm_postgresql_server" "postgresql" {

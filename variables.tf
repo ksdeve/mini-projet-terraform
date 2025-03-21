@@ -3,10 +3,8 @@ variable "resource_group_name" {
 }
 
 variable "location" {
-  description = "The Azure region in which resources should be created."
-  default     = "East US"
+  default = "East US"
 }
-
 
 variable "vm_name" {
   default = "FlaskVMKevinS"

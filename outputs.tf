@@ -15,6 +15,11 @@ output "postgresql_server_name" {
 }
 
 output "flask_url" {
-  value = "http://${azurerm_public_ip.public_ip.ip_address}:80"
+  value = "http://${azurerm_public_ip.public_ip.ip_address}:8080"
   description = "Public URL to access the Flask application"
+}
+
+output "storage_account_key" {
+  value = azurerm_storage_account.storage.primary_access_key
+  sensitive = true
 }
