@@ -112,11 +112,96 @@ resource "azurerm_linux_virtual_machine" "vm" {
     version   = "latest"
   }
 custom_data = base64encode(<<-EOF
-              #!/bin/bash
-              sudo apt update -y
+#!/bin/bash
 
+# Change les permissions du fichier de log pour que azureuser puisse écrire dedans
+echo "Modification des permissions du fichier setup.log..." 
+sudo chmod 644 /home/azureuser/setup.log
+sudo chown azureuser:azureuser /home/azureuser/setup.log
+
+# Ajout des permissions d'écriture globales
+sudo chmod 666 /home/azureuser/setup.log  # Ajout de cette ligne pour donner des permissions d'écriture à tous
+
+# Maintenant, commence l'écriture dans le fichier de log
+echo "Début du script d'installation..." > /home/azureuser/setup.log 2>&1
+
+# Met à jour les paquets
+echo "Mise à jour des paquets..." >> /home/azureuser/setup.log 2>&1
+sudo apt update -y >> /home/azureuser/setup.log 2>&1
+sudo apt upgrade -y >> /home/azureuser/setup.log 2>&1
+
+# Installe les dépendances nécessaires
+echo "Installation de git, Python, pip, etc." >> /home/azureuser/setup.log 2>&1
+sudo apt install -y python3-pip python3-venv postgresql libpq-dev git >> /home/azureuser/setup.log 2>&1
+
+# Créer un utilisateur dédié pour l'exécution de l'application
+echo "Création de l'utilisateur flaskuser..." >> /home/azureuser/setup.log 2>&1
+sudo useradd -m flaskuser >> /home/azureuser/setup.log 2>&1
+sudo passwd -d flaskuser >> /home/azureuser/setup.log 2>&1
+sudo usermod -aG sudo flaskuser >> /home/azureuser/setup.log 2>&1
+
+# Passer à l'utilisateur flaskuser pour continuer
+echo "Passage à l'utilisateur flaskuser..." >> /home/azureuser/setup.log 2>&1
+sudo -u flaskuser bash
+  # Passer dans le répertoire home de flaskuser
+  echo "Changement de répertoire dans /home/flaskuser..." >> /home/azureuser/setup.log 2>&1
+  cd /home/flaskuser
+
+  # Cloner le dépôt Git contenant l'application Flask
+  echo "Clonage du dépôt Git..." >> /home/azureuser/setup.log 2>&1
+  git clone https://ksdeve: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@github.com/ksdeve/mini-projet-terraform.git mini-projet-terraform >> /home/azureuser/setup.log 2>&1
+  if [ $? -ne 0 ]; then
+    echo "Erreur lors du clonage du dépôt Git." >> /home/azureuser/setup.log
+    exit 1
+  fi
+
+  # Créer un environnement virtuel Python
+  echo "Création de l'environnement virtuel Python..." >> /home/azureuser/setup.log 2>&1
+  python3 -m venv /home/flaskuser/mini-projet-terraform/venv >> /home/azureuser/setup.log 2>&1
+  if [ $? -ne 0 ]; then
+    echo "Erreur lors de la création de l'environnement virtuel." >> /home/azureuser/setup.log
+    exit 1
+  fi
+
+  # Activer l'environnement virtuel
+  source /home/flaskuser/mini-projet-terraform/venv/bin/activate
+
+  # Installer les dépendances Python depuis requirements.txt
+  echo "Installation des dépendances Python..." >> /home/azureuser/setup.log 2>&1
+  sudo chown flaskuser:flaskuser /home/flaskuser/mini-projet-terraform/flaskApp/requirements.txt
+  pip install -r /home/flaskuser/mini-projet-terraform/flaskApp/requirements.txt >> /home/azureuser/setup.log 2>&1
+  if [ $? -ne 0 ]; then
+    echo "Erreur lors de l'installation des dépendances." >> /home/azureuser/setup.log
+    exit 1
+  fi
+
+  # Créer le fichier .env avec les variables d'environnement
+  echo "Création du fichier .env..." >> /home/azureuser/setup.log 2>&1
+  echo "FLASK_APP=app.py" > /home/flaskuser/mini-projet-terraform/flaskApp/.env
+  echo "FLASK_ENV=development" >> /home/flaskuser/mini-projet-terraform/flaskApp/.env
+  echo "DB_NAME=flaskdb" >> /home/flaskuser/mini-projet-terraform/flaskApp/.env
+  echo "DB_USER=flaskadmin@flaskdbserver-2430c625a67eb8c4" >> /home/flaskuser/mini-projet-terraform/flaskApp/.env
+  echo "DB_PASSWORD=MotDePasseDB456!" >> /home/flaskuser/mini-projet-terraform/flaskApp/.env
+  echo "DB_HOST=flaskdbserver-2430c625a67eb8c4.postgres.database.azure.com" >> /home/flaskuser/mini-projet-terraform/flaskApp/.env
+  echo "DB_PORT=5432" >> /home/flaskuser/mini-projet-terraform/flaskApp/.env
+  echo "STORAGE_ACCOUNT_NAME=flaskstorageacctaa9c9648" >> /home/flaskuser/mini-projet-terraform/flaskApp/.env
+  echo "STORAGE_ACCOUNT_KEY=zjSTfq8pI0bdoxu+nvaNROWv+Khfaqz+kfrTcwpjOH94s9TURZTT6l1sRPfAosyHB/1oi8OpTb6G+AStiVIAkg==" >> /home/flaskuser/mini-projet-terraform/flaskApp/.env
+  echo "CONTAINER_NAME=flaskcontainer" >> /home/flaskuser/mini-projet-terraform/flaskApp/.env
+
+  # Démarrer l'application Flask en arrière-plan
+  echo "Démarrage de l'application Flask..." >> /home/azureuser/setup.log 2>&1
+  nohup flask run --host=0.0.0.0 --port=8080 & >> /home/azureuser/setup.log 2>&1
+  if [ $? -ne 0 ]; then
+    echo "Erreur lors du démarrage de Flask." >> /home/azureuser/setup.log
+    exit 1
+  else
+    echo "Flask démarré avec succès." >> /home/azureuser/setup.log
+  fi
+EOSU
 EOF
 )
+
+
 
 
 
