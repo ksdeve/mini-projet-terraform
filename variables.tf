@@ -14,6 +14,8 @@ variable "vm_size" {
   default = "Standard_B2s"  # 2 CPU, 4 Go RAM
 }
 
+
+
 variable "admin_username" {
   default = "azureuser"
 }

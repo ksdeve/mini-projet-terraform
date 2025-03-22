@@ -20,17 +20,17 @@ conn = psycopg2.connect(
 )
 cursor = conn.cursor()
 
-# Vérifier et créer la table si elle n'existe pas
+# Vérifier et créer la table des utilisateurs si elle n'existe pas
 cursor.execute("""
-    CREATE TABLE IF NOT EXISTS records (
+    CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         name TEXT NOT NULL,
-        value TEXT NOT NULL
+        email TEXT NOT NULL UNIQUE
     )
 """)
 conn.commit()
 
-print("Table 'records' vérifiée/créée avec succès.")
+print("Table 'users' vérifiée/créée avec succès.")
 
 # Connexion à Azure Blob Storage
 STORAGE_ACCOUNT_NAME = os.getenv("STORAGE_ACCOUNT_NAME")
@@ -42,8 +42,44 @@ blob_service_client = BlobServiceClient(
     credential=STORAGE_ACCOUNT_KEY
 )
 
+# Routes CRUD pour les utilisateurs
+@app.route('/user', methods=['POST'])
+def create_user():
+    """Créer un utilisateur."""
+    data = request.get_json()
+    cursor.execute("INSERT INTO users (name, email) VALUES (%s, %s)", (data['name'], data['email']))
+    conn.commit()
+    return jsonify({"message": "User created successfully"}), 201
+
+@app.route('/user/<int:user_id>', methods=['GET'])
+def get_user(user_id):
+    """Lire un utilisateur par son ID."""
+    cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+    user = cursor.fetchone()
+    if user:
+        return jsonify({"id": user[0], "name": user[1], "email": user[2]}), 200
+    else:
+        return jsonify({"message": "User not found"}), 404
+
+@app.route('/user/<int:user_id>', methods=['PUT'])
+def update_user(user_id):
+    """Mettre à jour un utilisateur."""
+    data = request.get_json()
+    cursor.execute("UPDATE users SET name = %s, email = %s WHERE id = %s", (data['name'], data['email'], user_id))
+    conn.commit()
+    return jsonify({"message": "User updated successfully"}), 200
+
+@app.route('/user/<int:user_id>', methods=['DELETE'])
+def delete_user(user_id):
+    """Supprimer un utilisateur."""
+    cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
+    conn.commit()
+    return jsonify({"message": "User deleted successfully"}), 200
+
+# Routes pour l'upload et download de fichiers vers Azure Blob Storage
 @app.route('/upload', methods=['POST'])
 def upload_file():
+    """Téléverser un fichier dans Azure Blob Storage."""
     file = request.files['file']
     if file:
         # Créer un blob client
@@ -65,20 +101,14 @@ def download_file(filename):
         return stream.readall(), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-        
 
-@app.route('/create', methods=['POST'])
-def create_record():
-    data = request.get_json()
-    cursor.execute("INSERT INTO records (name, value) VALUES (%s, %s)", (data['name'], data['value']))
-    conn.commit()
-    return jsonify({"message": "Record created successfully"}), 201
-
-@app.route('/read', methods=['GET'])
-def read_record():
-    cursor.execute("SELECT * FROM records")
-    records = cursor.fetchall()
-    return jsonify(records), 200
+# Route pour lire tous les utilisateurs
+@app.route('/users', methods=['GET'])
+def read_users():
+    """Lire tous les utilisateurs."""
+    cursor.execute("SELECT * FROM users")
+    users = cursor.fetchall()
+    return jsonify([{"id": user[0], "name": user[1], "email": user[2]} for user in users]), 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)
