@@ -144,25 +144,21 @@ resource "azurerm_linux_virtual_machine" "vm" {
     echo "Changement de répertoire dans /home/flaskuser..." >> /home/azureuser/setup.log 2>&1
     cd /home/flaskuser
 
-    # Vérifier si le dépôt Git existe déjà, et le supprimer si c'est le cas
+    
+    # Vérifier si le dépôt Git existe déjà
     if [ -d "/home/flaskuser/mini-projet-terraform" ]; then
       echo "Le dépôt Git existe déjà. Suppression du dépôt existant..." >> /home/azureuser/setup.log 2>&1
-      rm -rf /home/flaskuser/mini-projet-terraform >> /home/azureuser/setup.log 2>&1
+      sudo rm -rf /home/flaskuser/mini-projet-terraform >> /home/azureuser/setup.log 2>&1
       if [ $? -ne 0 ]; then
         echo "Erreur lors de la suppression du dépôt Git existant." >> /home/azureuser/setup.log
         exit 1
+      else
+        echo "Dépôt Git supprimé avec succès." >> /home/azureuser/setup.log
       fi
+    else
+      echo "Le dépôt Git n'existe pas, aucune suppression nécessaire." >> /home/azureuser/setup.log
     fi
 
-    # Vérifier si le dépôt Git existe déjà, et le supprimer si c'est le cas
-    if [ -d "/home/flaskuser/mini-projet-terraform" ]; then
-      echo "Le dépôt Git existe déjà. Suppression du dépôt existant..." >> /home/azureuser/setup.log 2>&1
-      sudo rm -rf /home/flaskuser/mini-projet-terraform
-      if [ $? -ne 0 ]; then
-        echo "Erreur lors de la suppression du dépôt Git existant." >> /home/azureuser/setup.log
-        exit 1
-      fi
-    fi
 
     # Clonage du dépôt
     echo "Clonage du dépôt Git..." >> /home/azureuser/setup.log 2>&1

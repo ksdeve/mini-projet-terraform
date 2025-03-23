@@ -71,7 +71,7 @@ def create_user():
 
 @app.route('/user/<int:user_id>', methods=['GET'])
 def get_user(user_id):
-    """Lire un utilisateur par son ID."""
+    """Lire un utilisateur par son Id."""
     with conn.cursor(cursor_factory=RealDictCursor) as cursor:
         cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
         user = cursor.fetchone()
