@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 import io
 from flask import send_file
 
-
 # Charger les variables d'environnement à partir du fichier .env
 load_dotenv()
 
@@ -21,7 +20,7 @@ try:
         password=os.getenv("DB_PASSWORD"),
         host=os.getenv("DB_HOST"),
         port=os.getenv("DB_PORT"),
-        sslmode=os.getenv("DB_SSLMODE", "prefer"),  # "require" si nécessaire
+        sslmode=os.getenv("DB_SSLMODE", "prefer"),
     )
     cursor = conn.cursor()
     print("Connexion à PostgreSQL réussie.")
@@ -29,7 +28,7 @@ except psycopg2.Error as e:
     print("Erreur de connexion à PostgreSQL :", e)
     exit(1)
 
-# Vérifier et créer la table des utilisateurs si elle n'existe pas
+# Vérifier et créer la table des utilisateurs et des fichiers si elles n'existent pas
 with conn.cursor() as cursor:
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
@@ -38,8 +37,18 @@ with conn.cursor() as cursor:
             email TEXT NOT NULL UNIQUE
         )
     """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS files (
+            id SERIAL PRIMARY KEY,
+            filename TEXT NOT NULL,
+            file_size INT NOT NULL,
+            file_type TEXT NOT NULL,
+            uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            user_id INT REFERENCES users(id)
+        )
+    """)
     conn.commit()
-    print("Table 'users' vérifiée/créée avec succès.")
+    print("Tables 'users' et 'files' vérifiées/créées avec succès.")
 
 # Connexion à Azure Blob Storage
 STORAGE_ACCOUNT_NAME = os.getenv("STORAGE_ACCOUNT_NAME")
@@ -117,24 +126,45 @@ def read_users():
         users = cursor.fetchall()
     return jsonify(users), 200
 
-# Routes pour l'upload et download de fichiers vers Azure Blob Storage
+# Routes pour l'upload et download de fichiers vers Azure Blob Storage avec gestion des métadonnées
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    """Téléverser un fichier dans Azure Blob Storage."""
+    """Téléverser un fichier dans Azure Blob Storage et enregistrer les métadonnées."""
     if 'file' not in request.files:
         return jsonify({"error": "No file uploaded"}), 400
 
     file = request.files['file']
+    user_id = request.form.get('user_id')  # Associer un utilisateur au fichier (facultatif)
+    
     try:
+        # Upload du fichier
         blob_client = blob_service_client.get_blob_client(container=CONTAINER_NAME, blob=file.filename)
         blob_client.upload_blob(file, overwrite=True)
-        return jsonify({"message": "File uploaded successfully"}), 200
+        
+        # Enregistrer les métadonnées dans la base de données
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                INSERT INTO files (filename, file_size, file_type, user_id)
+                VALUES (%s, %s, %s, %s) RETURNING id
+            """, (file.filename, len(file.read()), file.content_type, user_id))
+            file_id = cursor.fetchone()[0]
+            conn.commit()
+
+        return jsonify({"message": "File uploaded successfully", "file_id": file_id}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 @app.route('/download/<filename>', methods=['GET'])
 def download_file(filename):
-    """Télécharger un fichier depuis Azure Blob Storage."""
+    """Télécharger un fichier depuis Azure Blob Storage avec contrôle d'accès."""
+    # Vérifier si l'utilisateur a le droit de télécharger ce fichier
+    user_id = request.args.get('user_id')  # Récupérer l'ID utilisateur de la requête
+    with conn.cursor() as cursor:
+        cursor.execute("SELECT * FROM files WHERE filename = %s AND user_id = %s", (filename, user_id))
+        file_metadata = cursor.fetchone()
+        if not file_metadata:
+            return jsonify({"error": "Unauthorized or file not found"}), 403
+
     blob_client = blob_service_client.get_blob_client(container=CONTAINER_NAME, blob=filename)
     
     try:
@@ -147,9 +177,9 @@ def download_file(filename):
         
         # Utiliser send_file pour renvoyer le fichier
         return send_file(
-            io.BytesIO(stream.readall()),  # Utilisation du contenu du fichier en mémoire
-            download_name=filename,         # Nom du fichier à télécharger
-            as_attachment=True              # Indique que c'est un fichier à télécharger
+            io.BytesIO(stream.readall()),
+            download_name=filename,
+            as_attachment=True
         ), 200
 
     except Exception as e:
