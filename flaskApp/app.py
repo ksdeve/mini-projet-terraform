@@ -46,10 +46,15 @@ blob_service_client = BlobServiceClient(
 @app.route('/user', methods=['POST'])
 def create_user():
     """Créer un utilisateur."""
-    data = request.get_json()
-    cursor.execute("INSERT INTO users (name, email) VALUES (%s, %s)", (data['name'], data['email']))
-    conn.commit()
-    return jsonify({"message": "User created successfully"}), 201
+    try:
+        cursor.execute("INSERT INTO users (name, email) VALUES (%s, %s)", (data['name'], data['email']))
+        conn.commit()  # Valide la transaction
+    except psycopg2.Error as e:
+        conn.rollback()  # Annule la transaction en cas d'erreur
+        print("Erreur SQL :", e)
+    finally:
+        cursor.close()  # Toujours fermer le curseur
+
 
 @app.route('/user/<int:user_id>', methods=['GET'])
 def get_user(user_id):

@@ -158,9 +158,10 @@ resource "azurerm_linux_virtual_machine" "vm" {
     if [ -d "/home/flaskuser/mini-projet-terraform" ]; then
       echo "Le dépôt Git existe déjà. Mise à jour du dépôt existant..." >> /home/azureuser/setup.log 2>&1
       cd /home/flaskuser/mini-projet-terraform
+      git status >> /home/azureuser/setup.log 2>&1
       git pull origin main >> /home/azureuser/setup.log 2>&1
       if [ $? -ne 0 ]; then
-        echo "Erreur lors de la mise à jour du dépôt Git." >> /home/azureuser/setup.log
+        echo "Erreur lors du pull Git." >> /home/azureuser/setup.log
         exit 1
       fi
     else
@@ -172,6 +173,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
         exit 1
       fi
     fi
+
 
 
     # Créer un environnement virtuel Python
