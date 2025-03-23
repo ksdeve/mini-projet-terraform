@@ -154,24 +154,22 @@ resource "azurerm_linux_virtual_machine" "vm" {
       fi
     fi
 
-    # Vérifier si le dépôt Git existe déjà
+    # Vérifier si le dépôt Git existe déjà, et le supprimer si c'est le cas
     if [ -d "/home/flaskuser/mini-projet-terraform" ]; then
-      echo "Le dépôt Git existe déjà. Mise à jour du dépôt existant..." >> /home/azureuser/setup.log 2>&1
-      cd /home/flaskuser/mini-projet-terraform
-      git status >> /home/azureuser/setup.log 2>&1
-      git pull origin main >> /home/azureuser/setup.log 2>&1
+      echo "Le dépôt Git existe déjà. Suppression du dépôt existant..." >> /home/azureuser/setup.log 2>&1
+      rm -rf /home/flaskuser/mini-projet-terraform
       if [ $? -ne 0 ]; then
-        echo "Erreur lors du pull Git." >> /home/azureuser/setup.log
+        echo "Erreur lors de la suppression du dépôt Git existant." >> /home/azureuser/setup.log
         exit 1
       fi
-    else
-      # Si le dépôt n'existe pas, on le clone
-      echo "Le dépôt Git n'existe pas. Clonage du dépôt..." >> /home/azureuser/setup.log 2>&1
-      git clone https://ksdeve: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@github.com/ksdeve/mini-projet-terraform.git /home/flaskuser/mini-projet-terraform >> /home/azureuser/setup.log 2>&1
-      if [ $? -ne 0 ]; then
-        echo "Erreur lors du clonage du dépôt Git." >> /home/azureuser/setup.log
-        exit 1
-      fi
+    fi
+
+    # Clonage du dépôt
+    echo "Clonage du dépôt Git..." >> /home/azureuser/setup.log 2>&1
+    git clone https://ksdeve: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@github.com/ksdeve/mini-projet-terraform.git /home/flaskuser/mini-projet-terraform >> /home/azureuser/setup.log 2>&1
+    if [ $? -ne 0 ]; then
+      echo "Erreur lors du clonage du dépôt Git." >> /home/azureuser/setup.log
+      exit 1
     fi
 
 
