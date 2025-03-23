@@ -4,6 +4,9 @@ from psycopg2.extras import RealDictCursor
 from azure.storage.blob import BlobServiceClient
 import os
 from dotenv import load_dotenv
+import io
+from flask import send_file
+
 
 # Charger les variables d'environnement à partir du fichier .env
 load_dotenv()
@@ -133,12 +136,22 @@ def upload_file():
 def download_file(filename):
     """Télécharger un fichier depuis Azure Blob Storage."""
     blob_client = blob_service_client.get_blob_client(container=CONTAINER_NAME, blob=filename)
+    
     try:
+        # Vérifier si le fichier existe dans Blob Storage
         if not blob_client.exists():
             return jsonify({"error": "File not found"}), 404
 
+        # Télécharger le fichier en mémoire
         stream = blob_client.download_blob()
-        return stream.readall(), 200
+        
+        # Utiliser send_file pour renvoyer le fichier
+        return send_file(
+            io.BytesIO(stream.readall()),  # Utilisation du contenu du fichier en mémoire
+            download_name=filename,         # Nom du fichier à télécharger
+            as_attachment=True              # Indique que c'est un fichier à télécharger
+        ), 200
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

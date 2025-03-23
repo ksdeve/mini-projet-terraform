@@ -157,7 +157,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
     # Vérifier si le dépôt Git existe déjà, et le supprimer si c'est le cas
     if [ -d "/home/flaskuser/mini-projet-terraform" ]; then
       echo "Le dépôt Git existe déjà. Suppression du dépôt existant..." >> /home/azureuser/setup.log 2>&1
-      rm -rf /home/flaskuser/mini-projet-terraform
+      sudo rm -rf /home/flaskuser/mini-projet-terraform
       if [ $? -ne 0 ]; then
         echo "Erreur lors de la suppression du dépôt Git existant." >> /home/azureuser/setup.log
         exit 1

@@ -1,137 +1,65 @@
 {
 	"info": {
-		"_postman_id": "8560a78a-38fe-4def-8bad-fee90b311721",
-		"name": "CloudCompouting",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "26743714"
+	  "_postman_id": "12345678-1234-1234-1234-123456789abc",
+	  "name": "Flask API",
+	  "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
-		{
-			"name": "Read",
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "http://172.190.162.177:8080/read",
-					"protocol": "http",
-					"host": [
-						"172",
-						"190",
-						"162",
-						"177"
-					],
-					"port": "8080",
-					"path": [
-						"read"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Create",
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"name\": \"John\",\r\n    \"value\": \"42\"\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://172.190.162.177:8080/create",
-					"protocol": "http",
-					"host": [
-						"172",
-						"190",
-						"162",
-						"177"
-					],
-					"port": "8080",
-					"path": [
-						"create"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Upload",
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://172.190.162.177:8080/upload",
-					"protocol": "http",
-					"host": [
-						"172",
-						"190",
-						"162",
-						"177"
-					],
-					"port": "8080",
-					"path": [
-						"upload"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Upload Copy",
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://172.190.162.177:8080/upload",
-					"protocol": "http",
-					"host": [
-						"172",
-						"190",
-						"162",
-						"177"
-					],
-					"port": "8080",
-					"path": [
-						"upload"
-					]
-				}
-			},
-			"response": []
+	  {
+		"name": "Create User",
+		"request": {
+		  "method": "POST",
+		  "header": [{ "key": "Content-Type", "value": "application/json" }],
+		  "url": { "raw": "http://172.190.162.177:8080/user", "host": ["http://172.190.162.177:8080"], "path": ["user"] },
+		  "body": { "mode": "raw", "raw": "{\"name\": \"John Doe\", \"email\": \"john.doe@example.com\"}" }
 		}
+	  },
+	  {
+		"name": "Get User by ID",
+		"request": {
+		  "method": "GET",
+		  "url": { "raw": "http://172.190.162.177:8080/user/1", "host": ["http://172.190.162.177:8080"], "path": ["user", "1"] }
+		}
+	  },
+	  {
+		"name": "Update User",
+		"request": {
+		  "method": "PUT",
+		  "header": [{ "key": "Content-Type", "value": "application/json" }],
+		  "url": { "raw": "http://172.190.162.177:8080/user/1", "host": ["http://172.190.162.177:8080"], "path": ["user", "1"] },
+		  "body": { "mode": "raw", "raw": "{\"name\": \"John Updated\", \"email\": \"john.updated@example.com\"}" }
+		}
+	  },
+	  {
+		"name": "Delete User",
+		"request": {
+		  "method": "DELETE",
+		  "url": { "raw": "http://172.190.162.177:8080/user/1", "host": ["http://172.190.162.177:8080"], "path": ["user", "1"] }
+		}
+	  },
+	  {
+		"name": "Get All Users",
+		"request": {
+		  "method": "GET",
+		  "url": { "raw": "http://172.190.162.177:8080/users", "host": ["http://172.190.162.177:8080"], "path": ["users"] }
+		}
+	  },
+	  {
+		"name": "Upload File",
+		"request": {
+		  "method": "POST",
+		  "header": [{ "key": "Content-Type", "value": "multipart/form-data" }],
+		  "url": { "raw": "http://172.190.162.177:8080/upload", "host": ["http://172.190.162.177:8080"], "path": ["upload"] },
+		  "body": { "mode": "formdata", "formdata": [{ "key": "file", "type": "file", "src": "<your_file_path>" }] }
+		}
+	  },
+	  {
+		"name": "Download File",
+		"request": {
+		  "method": "GET",
+		  "url": { "raw": "http://172.190.162.177:8080/download/sample.txt", "host": ["http://172.190.162.177:8080"], "path": ["download", "sample.txt"] }
+		}
+	  }
 	]
-}
+  }
+  
