@@ -107,15 +107,22 @@ def update_user(user_id):
 
 @app.route('/user/<int:user_id>', methods=['DELETE'])
 def delete_user(user_id):
-    """Supprimer un utilisateur."""
+    """Supprimer un utilisateur et ses fichiers associés."""
     with conn.cursor() as cursor:
+        # Vérifier si l'utilisateur existe
         cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
         if cursor.fetchone() is None:
             return jsonify({"error": "User not found"}), 404
+        
+        # Supprimer les fichiers associés à l'utilisateur
+        cursor.execute("DELETE FROM files WHERE user_id = %s", (user_id,))
+        conn.commit()
 
+        # Supprimer l'utilisateur
         cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
         conn.commit()
-    return jsonify({"message": "User deleted successfully"}), 200
+
+    return jsonify({"message": "User and associated files deleted successfully"}), 200
 
 # Route pour lire tous les utilisateurs
 @app.route('/users', methods=['GET'])

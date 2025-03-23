@@ -1,0 +1,230 @@
+{
+	"info": {
+		"_postman_id": "5caafc40-c2ed-4861-ad76-d1805f1ef1fd",
+		"name": "API Testing - File Upload & User CRUD",
+		"description": "Postman collection for testing user CRUD operations and file upload/download.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "26743714"
+	},
+	"item": [
+		{
+			"name": "Create User",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"name\": \"John Doe\", \"email\": \"johndoe@example.com\"}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://172.190.162.177:8080/user",
+					"protocol": "http",
+					"host": [
+						"172",
+						"190",
+						"162",
+						"177"
+					],
+					"port": "8080",
+					"path": [
+						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get User By ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://172.190.162.177:8080/user/1",
+					"protocol": "http",
+					"host": [
+						"172",
+						"190",
+						"162",
+						"177"
+					],
+					"port": "8080",
+					"path": [
+						"user",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update User",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"name\": \"John Updated\", \"email\": \"johnupdated@example.com\"}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://172.190.162.177:8080/user/1",
+					"protocol": "http",
+					"host": [
+						"172",
+						"190",
+						"162",
+						"177"
+					],
+					"port": "8080",
+					"path": [
+						"user",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete User",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://172.190.162.177:8080/user/1",
+					"protocol": "http",
+					"host": [
+						"172",
+						"190",
+						"162",
+						"177"
+					],
+					"port": "8080",
+					"path": [
+						"user",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get All Users",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://172.190.162.177:8080/users",
+					"protocol": "http",
+					"host": [
+						"172",
+						"190",
+						"162",
+						"177"
+					],
+					"port": "8080",
+					"path": [
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get All Files",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://172.190.162.177:8080/files",
+					"protocol": "http",
+					"host": [
+						"172",
+						"190",
+						"162",
+						"177"
+					],
+					"port": "8080",
+					"path": [
+						"files"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Upload File",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "path/to/your/file.txt"
+						},
+						{
+							"key": "user_id",
+							"value": "1",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://172.190.162.177:8080/upload",
+					"protocol": "http",
+					"host": [
+						"172",
+						"190",
+						"162",
+						"177"
+					],
+					"port": "8080",
+					"path": [
+						"upload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Download File",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://172.190.162.177:8080/download/yourfile.txt?user_id=1",
+					"protocol": "http",
+					"host": [
+						"172",
+						"190",
+						"162",
+						"177"
+					],
+					"port": "8080",
+					"path": [
+						"download",
+						"yourfile.txt"
+					],
+					"query": [
+						{
+							"key": "user_id",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

@@ -144,7 +144,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
     echo "Changement de répertoire dans /home/flaskuser..." >> /home/azureuser/setup.log 2>&1
     cd /home/flaskuser
 
-    
+
     # Vérifier si le dépôt Git existe déjà
     if [ -d "/home/flaskuser/mini-projet-terraform" ]; then
       echo "Le dépôt Git existe déjà. Suppression du dépôt existant..." >> /home/azureuser/setup.log 2>&1
@@ -271,9 +271,10 @@ resource "azurerm_postgresql_firewall_rule" "allow_postgresql" {
   name                = "AllowMyPostgresql"
   server_name         = azurerm_postgresql_server.postgresql.name
   resource_group_name = azurerm_resource_group.rg.name
-  start_ip_address    = "0.0.0.0"  # Autorise toutes les adresses (remplacer par des IP spécifiques pour plus de sécurité)
-  end_ip_address      = "255.255.255.255"  # Autorise toutes les adresses
+  start_ip_address    = azurerm_public_ip.public_ip.ip_address  # Utilisation dynamique de l'IP
+  end_ip_address      = azurerm_public_ip.public_ip.ip_address  # Utilisation dynamique de l'IP
 }
+
 
 
 
