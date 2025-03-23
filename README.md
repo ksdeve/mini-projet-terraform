@@ -1,6 +1,9 @@
 
 # Terraform Projet - Gestion des Machines Virtuelles Azure
 
+## Objectif du Projet
+Ce projet consiste à automatiser le déploiement d’une infrastructure cloud avec Terraform. Vous déploierez une machine virtuelle (VM) et un stockage cloud dans le but de déployer une application web Flask. Ce projet couvre la gestion de l'infrastructure, la gestion du stockage et l'automatisation des déploiements.
+
 ## Prérequis
 
 Avant de commencer, assurez-vous d'avoir les éléments suivants installés :
@@ -9,12 +12,40 @@ Avant de commencer, assurez-vous d'avoir les éléments suivants installés :
 - [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) pour gérer les ressources sur Azure
 - Un compte Azure actif et les bonnes autorisations pour gérer les ressources sur votre abonnement
 
+## Configuration du Provider Azure
+Avant d'utiliser Terraform, vous devez vous authentifier avec Azure via la CLI. Exécutez la commande suivante :
+
+```bash
+az login
+```
+
+## Gestion des Variables Sensibles
+
+Pour gérer les informations sensibles, telles que les mots de passe ou les identifiants, il est recommandé de créer un fichier terraform.tfvars. Ce fichier contient les valeurs des variables que vous définissez dans vos fichiers Terraform, et vous pouvez y spécifier des informations sensibles de manière sécurisée.
+
+Créez un fichier terraform.tfvars à la racine de votre projet avec le schémas suivant :
+
+```hcl
+admin_password   = "mon_mot_de_passe"
+db_password      = "mon_mot_de_passe"
+subscription_id  = "id"
+```
+
 ## Initialisation du projet
 
 Pour initialiser votre projet Terraform et installer les modules nécessaires, exécutez la commande suivante dans le répertoire racine de votre projet Terraform :
 
 ```bash
 terraform init
+```
+
+## Prévisualiser les Changements
+Avant d'appliquer les modifications à votre infrastructure, vous pouvez utiliser la commande `terraform plan` pour prévisualiser les changements qui seront effectués. Cela permet de voir un plan détaillé des ressources créées, modifiées ou supprimées, et d'assurer que les modifications sont correctes.
+
+Exécutez la commande suivante dans le répertoire racine de votre projet Terraform :
+
+```bash
+terraform plan
 ```
 
 ## Appliquer les changements sur l'infrastructure
