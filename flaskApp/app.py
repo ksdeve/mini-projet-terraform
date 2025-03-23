@@ -126,6 +126,16 @@ def read_users():
         users = cursor.fetchall()
     return jsonify(users), 200
 
+
+@app.route('/files', methods=['GET'])
+def read_files():
+    """Lire tous les fichiers et leurs métadonnées."""
+    with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+        cursor.execute("SELECT * FROM files")
+        files = cursor.fetchall()
+    return jsonify(files), 200
+
+
 # Routes pour l'upload et download de fichiers vers Azure Blob Storage avec gestion des métadonnées
 @app.route('/upload', methods=['POST'])
 def upload_file():
